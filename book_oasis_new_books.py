@@ -22,7 +22,7 @@ class BookOasisNewBooksProvider(BaseMetadataProvider):
     update_manifest = {
         "enabled": True,
         "provider": "github-raw",
-        "raw_base_url": "https://raw.githubusercontent.com/leeyj/BookOasis_stable/main/plugins/metadata/book_oasis_new_books",
+        "raw_base_url": "https://raw.githubusercontent.com/yume-script/book_oasis_new_books/refs/heads/main/",
         "files": ["book_oasis_new_books.py", "__init__.py", "VERSION"],
         "version_file": "VERSION",
         "version_key": "plugin version",
