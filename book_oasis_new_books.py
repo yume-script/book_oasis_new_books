@@ -22,7 +22,7 @@ class BookOasisNewBooksProvider(BaseMetadataProvider):
     update_manifest = {
         "enabled": True,
         "provider": "github-raw",
-        "raw_base_url": "https://raw.githubusercontent.com/yume-script/book_oasis_new_books/refs/heads/main/",
+        "raw_base_url": "https://raw.githubusercontent.com/leeyj/BookOasis_stable/main/plugins/metadata/book_oasis_new_books",
         "files": ["book_oasis_new_books.py", "__init__.py", "VERSION"],
         "version_file": "VERSION",
         "version_key": "plugin version",
@@ -61,12 +61,13 @@ class BookOasisNewBooksProvider(BaseMetadataProvider):
     def _fetch_new_books(self, db_type, limit=30):
         gateway = self.get_db_gateway(db_type)
         try:
+            # 제공해주신 스키마의 실제 컬럼명(cover_image, release_date, summary 등) 반영
             rows = gateway.fetch_all(
                 """
-                SELECT *
+                SELECT id, title, series_name, author, publisher, cover_image, release_date, summary, created_at
                 FROM books
                 WHERE COALESCE(is_deleted, 0) = 0
-                ORDER BY id DESC
+                ORDER BY created_at DESC, id DESC
                 LIMIT ?
                 """,
                 (limit,)
@@ -84,9 +85,9 @@ class BookOasisNewBooksProvider(BaseMetadataProvider):
                 title = row.get('title') or '제목 없음'
                 author = row.get('author') or '저자 미상'
                 publisher = row.get('publisher') or ''
-                pub_date = row.get('pub_date') or row.get('pubDate') or ''
-                cover = row.get('cover_url') or row.get('cover') or ''
-                description = row.get('description') or ''
+                pub_date = row.get('release_date') or ''  # 스키마의 release_date 매핑
+                cover = row.get('cover_image') or ''       # 스키마의 cover_image 매핑
+                description = row.get('summary') or ''     # 스키마의 summary 매핑
                 created_at = row.get('created_at') or ''
 
                 detail_url = self._generate_book_url(db_type, row)
