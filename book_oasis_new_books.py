@@ -61,7 +61,6 @@ class BookOasisNewBooksProvider(BaseMetadataProvider):
     def _fetch_new_books(self, db_type, limit=30):
         gateway = self.get_db_gateway(db_type)
         try:
-            # 제공해주신 스키마의 실제 컬럼명(cover_image, release_date, summary 등) 반영
             rows = gateway.fetch_all(
                 """
                 SELECT id, title, series_name, author, publisher, cover_image, release_date, summary, created_at
@@ -85,10 +84,21 @@ class BookOasisNewBooksProvider(BaseMetadataProvider):
                 title = row.get('title') or '제목 없음'
                 author = row.get('author') or '저자 미상'
                 publisher = row.get('publisher') or ''
-                pub_date = row.get('release_date') or ''  # 스키마의 release_date 매핑
-                cover = row.get('cover_image') or ''       # 스키마의 cover_image 매핑
-                description = row.get('summary') or ''     # 스키마의 summary 매핑
+                pub_date = row.get('release_date') or ''
+                summary = row.get('summary') or ''
                 created_at = row.get('created_at') or ''
+
+                # DB에 저장된 값 (예: 8/book_a9f67212a737d5c6f2c21c8f617364f5.webp)
+                cover_raw = row.get('cover_image') or ''
+                
+                # 웹 브라우저에서 접근 가능한 커버 이미지 경로 완성
+                # (시스템 환경에 따라 /covers/ 또는 ./covers/ 형태 적용)
+                if cover_raw:
+                    # 앞에 ./ 혹은 / 가 중복되지 않도록 깔끔하게 처리
+                    clean_cover = cover_raw.lstrip('./').lstrip('/')
+                    cover = f"/covers/{clean_cover}"
+                else:
+                    cover = ""
 
                 detail_url = self._generate_book_url(db_type, row)
 
@@ -99,7 +109,7 @@ class BookOasisNewBooksProvider(BaseMetadataProvider):
                     'publisher': publisher,
                     'pubDate': pub_date,
                     'cover': cover,
-                    'description': description,
+                    'description': summary,
                     'createdAt': created_at,
                     'link': detail_url
                 })
